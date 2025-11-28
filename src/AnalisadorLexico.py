@@ -1,5 +1,5 @@
-from Token import Token
-from TipoToken import TipoToken
+from src.Token import Token
+from src.TipoToken import TipoToken
     
 class AnalisadorLexico:
     def __init__(self, codigo_fonte):
@@ -9,11 +9,13 @@ class AnalisadorLexico:
         
         self.palavras_chave = {
             "if": Token(TipoToken.IF, "if"),
-            "elif": Token(TipoToken.ELIF, "elif"),
             "else": Token(TipoToken.ELSE, "else"),
             "while": Token(TipoToken.WHILE, "while"),
-            "True": Token(TipoToken.TRUE, True),
-            "False": Token(TipoToken.FALSE, False),
+            "for": Token(TipoToken.FOR, "for"),
+            "int": Token(TipoToken.INT, "int"),
+            "float": Token(TipoToken.FLOAT, "float"),
+            "void": Token(TipoToken.VOID, "void"),
+            "return": Token(TipoToken.RETURN, "return"),
         }
 
     def proximo_token(self):
@@ -81,7 +83,6 @@ class AnalisadorLexico:
                 
             # 5. Reconhecer Operadores e Pontuação
             if char == '=':
-                # Olhamos um caractere à frente para ver se é '=='
                 if self.posicao + 1 < len(self.codigo) and self.codigo[self.posicao + 1] == '=':
                     self._avancar()
                     self._avancar()
@@ -89,6 +90,16 @@ class AnalisadorLexico:
                 else:
                     self._avancar()
                     self.tokens.append(Token(TipoToken.ATRIBUICAO, "="))
+                continue
+                
+            if char == '!':
+                if self.posicao + 1 < len(self.codigo) and self.codigo[self.posicao + 1] == '=':
+                    self._avancar()
+                    self._avancar()
+                    self.tokens.append(Token(TipoToken.DIFERENCA, "!="))
+                else:
+                    self._avancar()
+                    self.tokens.append(Token(TipoToken.NEGACAO, "!"))
                 continue
                 
             if char == '>':
@@ -132,10 +143,68 @@ class AnalisadorLexico:
                 self._avancar()
                 self.tokens.append(Token(TipoToken.DIVISAO, "/"))
                 continue
-
-            if char == ':':
+                
+            if char == '%':
                 self._avancar()
-                self.tokens.append(Token(TipoToken.DOIS_PONTOS, ":"))
+                self.tokens.append(Token(TipoToken.MODULO, "%"))
+                continue
+
+            if char == ';':
+                self._avancar()
+                self.tokens.append(Token(TipoToken.PONTO_VIRGULA, ";"))
+                continue
+                
+            if char == '{':
+                self._avancar()
+                self.tokens.append(Token(TipoToken.CHAVE_ABERTA, "{"))
+                continue
+                
+            if char == '}':
+                self._avancar()
+                self.tokens.append(Token(TipoToken.CHAVE_FECHADA, "}"))
+                continue
+                
+            if char == '(':
+                self._avancar()
+                self.tokens.append(Token(TipoToken.PARENTESE_ABERTA, "("))
+                continue
+                
+            if char == ')':
+                self._avancar()
+                self.tokens.append(Token(TipoToken.PARENTESE_FECHADA, ")"))
+                continue
+                
+            if char == '[':
+                self._avancar()
+                self.tokens.append(Token(TipoToken.COLCHETE_ABERTO, "["))
+                continue
+                
+            if char == ']':
+                self._avancar()
+                self.tokens.append(Token(TipoToken.COLCHETE_FECHADO, "]"))
+                continue
+                
+            if char == ',':
+                self._avancar()
+                self.tokens.append(Token(TipoToken.VIRGULA, ","))
+                continue
+                
+            if char == '&':
+                if self.posicao + 1 < len(self.codigo) and self.codigo[self.posicao + 1] == '&':
+                    self._avancar()
+                    self._avancar()
+                    self.tokens.append(Token(TipoToken.E_LOGICO, "&&"))
+                else:
+                    raise ValueError(f"Caractere inválido encontrado: '{char}'")
+                continue
+                
+            if char == '|':
+                if self.posicao + 1 < len(self.codigo) and self.codigo[self.posicao + 1] == '|':
+                    self._avancar()
+                    self._avancar()
+                    self.tokens.append(Token(TipoToken.OU_LOGICO, "||"))
+                else:
+                    raise ValueError(f"Caractere inválido encontrado: '{char}'")
                 continue
 
             # Se nenhum token foi reconhecido, é um caractere inválido

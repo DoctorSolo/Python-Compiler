@@ -1,6 +1,7 @@
-from AnalisadorLexico import AnalisadorLexico
+from src.AnalisadorLexico import AnalisadorLexico
 
-lexer_final = AnalisadorLexico('codigo.py')
+
+lexer_final = AnalisadorLexico('exemplo_c.c')
 lista_de_tokens = lexer_final.analisar()
 
 # Imprimir o resultado
