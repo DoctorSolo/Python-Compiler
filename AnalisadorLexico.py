@@ -100,12 +100,18 @@ class AnalisadorLexico:
                     self._avancar()
                     self.tokens.append(Token(TipoToken.MAIOR, ">"))
                 continue
-
+            
+            
             if char == '<':
-                # (Exercício para os alunos completarem a lógica do '<=')
-                self._avancar()
-                self.tokens.append(Token(TipoToken.MENOR, "<"))
+                if self.posicao + 1 < len(self.codigo) and self.codigo[self.posicao + 1] == '=':
+                    self._avancar()
+                    self._avancar()
+                    self.tokens.append(Token(TipoToken.MENOR_IGUAL, "<="))
+                else:
+                    self._avancar()
+                    self.tokens.append(Token(TipoToken.MENOR, "<"))
                 continue
+
                 
             if char == '+':
                 self._avancar()
