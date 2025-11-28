@@ -112,17 +112,17 @@ class AnalisadorLexico:
                 self.tokens.append(Token(TipoToken.SOMA, "+"))
                 continue
                 
-            if char == '+':
+            if char == '-':
                 self._avancar()
                 self.tokens.append(Token(TipoToken.SUBTRACAO, "-"))
                 continue
                 
-            if char == '+':
+            if char == '*':
                 self._avancar()
                 self.tokens.append(Token(TipoToken.MULTIPLICACAO, "*"))
                 continue
                 
-            if char == '+':
+            if char == '/':
                 self._avancar()
                 self.tokens.append(Token(TipoToken.DIVISAO, "/"))
                 continue
