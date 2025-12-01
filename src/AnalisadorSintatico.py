@@ -1,6 +1,7 @@
 from src.TipoToken import TipoToken
 from src.Nos import NoAST, NoBloco, NoAtribuicao, NoVariavel, NoNumero, NoOperacaoBinaria, NoIf, NoWhile
-from src.TabelaDeSimbolos import TabelaDeSimbolos   
+from src.TabelaDeSimbolos import TabelaDeSimbolos  
+from src.Token import Token
 
 
 class AnalisadorSintatico:
@@ -77,8 +78,48 @@ class AnalisadorSintatico:
         self._consumir(TipoToken.PONTO_VIRGULA)  # Requer ; no final
         return NoAtribuicao(NoVariavel(var_token), valor)
 
+    # Expression parsing (supports binary ops and parentheses)
     def _parse_expressao(self):
-        """Por enquanto, uma expressão é apenas um número ou uma variável."""
+        return self._parse_comparacao()
+
+    def _parse_comparacao(self):
+        node = self._parse_termo()
+        comparadores = [TipoToken.IGUALDADE, TipoToken.DIFERENCA, TipoToken.MAIOR, TipoToken.MAIOR_IGUAL, TipoToken.MENOR, TipoToken.MENOR_IGUAL]
+        while self._token_atual().tipo in comparadores:
+            op = self._consumir(self._token_atual().tipo)
+            right = self._parse_termo()
+            node = NoOperacaoBinaria(node, op, right)
+        return node
+
+    def _parse_termo(self):
+        node = self._parse_fator()
+        while self._token_atual().tipo in (TipoToken.SOMA, TipoToken.SUBTRACAO):
+            op = self._consumir(self._token_atual().tipo)
+            right = self._parse_fator()
+            node = NoOperacaoBinaria(node, op, right)
+        return node
+
+    def _parse_fator(self):
+        node = self._parse_unario()
+        while self._token_atual().tipo in (TipoToken.MULTIPLICACAO, TipoToken.DIVISAO, TipoToken.MODULO):
+            op = self._consumir(self._token_atual().tipo)
+            right = self._parse_unario()
+            node = NoOperacaoBinaria(node, op, right)
+        return node
+
+    def _parse_unario(self):
+        # Handle unary + and -
+        if self._token_atual().tipo == TipoToken.SOMA:
+            self._consumir(TipoToken.SOMA)
+            return self._parse_unario()
+        if self._token_atual().tipo == TipoToken.SUBTRACAO:
+            op = self._consumir(TipoToken.SUBTRACAO)
+            right = self._parse_unario()
+            zero_token = Token(TipoToken.NUMERO_INTEIRO, 0)
+            return NoOperacaoBinaria(NoNumero(zero_token), op, right)
+        return self._parse_primario()
+
+    def _parse_primario(self):
         token = self._token_atual()
         if token.tipo == TipoToken.NUMERO_INTEIRO:
             self._consumir(TipoToken.NUMERO_INTEIRO)
@@ -87,8 +128,13 @@ class AnalisadorSintatico:
             self._consumir(TipoToken.IDENTIFICADOR)
             self.tabela_de_simbolos.obter(token.valor) # Verifica se existe
             return NoVariavel(token)
+        elif token.tipo == TipoToken.PARENTESE_ABERTA:
+            self._consumir(TipoToken.PARENTESE_ABERTA)
+            expr = self._parse_expressao()
+            self._consumir(TipoToken.PARENTESE_FECHADA)
+            return expr
         else:
-            raise SyntaxError(f"Expressão inválida. Esperado NÚMERO ou IDENTIFICADOR, mas encontrado {token.tipo}")
+            raise SyntaxError(f"Expressão inválida. Esperado NÚMERO, IDENTIFICADOR ou '(', mas encontrado {token.tipo}")
 
     def _parse_if(self):
         """Parseia: if (condicao) { corpo } [else { corpo }]"""
